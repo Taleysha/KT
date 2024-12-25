@@ -1,0 +1,26 @@
+services:
+  law-enforcement-db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=law_enforcement_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - le-db-data:/var/lib/postgresql/data
+
+  community-db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=community_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - community-db-data:/var/lib/postgresql/data
+
+volumes:
+  le-db-data:
+  community-db-data:
