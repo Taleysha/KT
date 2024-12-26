@@ -5,16 +5,21 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+import os
 from . import models, schemas
 from .database import SessionLocal
 
-# Security configuration for community system
-COMMUNITY_SECRET_KEY = "YOUR_COMMUNITY_SECRET_KEY_HERE"  # Change this in production
+# Load environment variables
+load_dotenv()
+
+# Security configuration
+COMMUNITY_SECRET_KEY = os.getenv("COMMUNITY_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="community/token")
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
@@ -64,7 +69,7 @@ async def get_current_active_community_user(current_user = Depends(get_current_c
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
-# Rate limiting for community users
+# Rate limiting
 from fastapi import Request
 import time
 from collections import defaultdict

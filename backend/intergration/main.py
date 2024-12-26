@@ -1,12 +1,14 @@
-from fastapi import FastAPI
-from .middleware import SecurityMiddleware
-from .services import DataSyncService
+from fastapi import FastAPI, Depends, HTTPException
+from .auth import get_current_active_user, check_permissions
+from .rate_limiter import rate_limiter
 
-app = FastAPI()
-app.add_middleware(SecurityMiddleware)
-sync_service = DataSyncService()
-
-@app.post("/sync/alert")
-async def sync_alert(alert_data: dict):
-    await sync_service.sync_alert(alert_data)
-    return {"status": "success"}
+@app.post("/alerts/")
+async def create_alert(
+    alert: schemas.AlertCreate,
+    current_user = Depends(get_current_active_user),
+    _: None = Depends(rate_limiter)
+):
+    # Create alert and trigger sync
+    db_alert = crud.create_alert(db, alert)
+    await integration_service.sync_alert(db_alert)
+    return db_alert
