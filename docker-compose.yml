@@ -21,6 +21,55 @@ services:
     volumes:
       - community-db-data:/var/lib/postgresql/data
 
+  law-enforcement-api:
+    build:
+      context: ./backend/intergration
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://user:password@law-enforcement-db:5432/law_enforcement_db
+      - SECRET_KEY=${LE_SECRET_KEY}
+    depends_on:
+      - law-enforcement-db
+    ports:
+      - "8000:8000"
+
+  community-api:
+    build:
+      context: ./backend/intergration
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://user:password@community-db:5432/community_db
+      - COMMUNITY_SECRET_KEY=${COMMUNITY_SECRET_KEY}
+    depends_on:
+      - community-db
+    ports:
+      - "8001:8000"
+
+  intergration-service:
+    build:
+      context: ./backend/intergration
+      dockerfile: Dockerfile
+    environment:
+      - INTERGRATION_SECRET_KEY=${INTERGRATION_SECRET_KEY}
+      - LAW_ENFORCEMENT_API_URL=http://law-enforcement-api:8000
+      - COMMUNITY_API_URL=http://community-api:8001
+    depends_on:
+      - law-enforcement-db
+      - community-db
+    ports:
+      - "8002:8000"
+
+  law-enforcement-frontend:
+    build:
+      context: ./frontend/law-enforcement-dashboard
+      dockerfile: Dockerfile
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - law-enforcement-api
+    ports:
+      - "3000:3000"
+
 volumes:
   le-db-data:
   community-db-data:
